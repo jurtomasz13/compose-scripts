@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: prestashop
+    networks:
+      - psnetwork
+    volumes:
+      - dbdata:/var/lib/mysql
+  prestashop:
+    image: "prestashop/prestashop:${PRESTASHOP_VERSION:-latest}"
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "${PRESTASHOP_PORT:-8080}:80"
+    environment:
+      DB_SERVER: mysql
+      DB_NAME: prestashop
+      DB_USER: root
+      DB_PASSWD: admin
+    networks:
+      - psnetwork
+    volumes:
+      - psdata:/var/www/html
+networks:
+  psnetwork:
+volumes:
+  dbdata:
+  psdata:
