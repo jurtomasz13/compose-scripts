@@ -1,14 +1,17 @@
 services:
   mysql:
-    image: "mysql:${MYSQL_VERSION}:-5.7"
+    image: "mysql:${MYSQL_VERSION:-5.7}"
+    platform: linux/amd64
     restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: prestashop
     networks:
       - psnetwork
     volumes:
-      - dbdata:/var/lib/mysql
+      - ./docker/db:/var/lib/mysql
   prestashop:
     image: "prestashop/prestashop:${PRESTASHOP_VERSION:-latest}"
     restart: unless-stopped
@@ -24,9 +27,18 @@ services:
     networks:
       - psnetwork
     volumes:
-      - psdata:/var/www/html
+      # Recommended when developing modules only
+      # or working by attaching vscode directly to container.
+      # - psdata:/var/www/html
+
+      # To work with PrestaShop files directly on the host, first complete the PrestaShop installation.
+      # Then, copy PrestaShop files from container (container:/var/www/html)
+      # to root (.) location, stop containers and uncomment the bind mount below:
+      - .:/var/www/html
+
 networks:
   psnetwork:
-volumes:
-  dbdata:
-  psdata:
+
+  # Used by default for persistent PrestaShop files.
+  # Comment this out if switching to a bind mount (e.g., `.:/var/www/html`) for direct file access.
+  # psdata:
